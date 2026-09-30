@@ -4,16 +4,34 @@
 const DRIVE = 'https://www.googleapis.com/drive/v3/files';
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
 
-function getToken() {
-  return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive: true }, token => {
-      if (chrome.runtime.lastError || !token) {
-        reject(new Error(chrome.runtime.lastError?.message || 'No token'));
-      } else {
-        resolve(token);
-      }
-    });
+// Google OAuth "Web application" client ID (see README). Works in Chrome and Edge.
+const CLIENT_ID = 'PASTE_YOUR_CLIENT_ID.apps.googleusercontent.com';
+const SCOPE = 'https://www.googleapis.com/auth/drive';
+
+function signIn(interactive) {
+  const url =
+    'https://accounts.google.com/o/oauth2/v2/auth?response_type=token' +
+    '&client_id=' + encodeURIComponent(CLIENT_ID) +
+    '&redirect_uri=' + encodeURIComponent(chrome.identity.getRedirectURL()) +
+    '&scope=' + encodeURIComponent(SCOPE);
+  return chrome.identity.launchWebAuthFlow({ url, interactive }).then(redirect => {
+    const params = new URLSearchParams(new URL(redirect).hash.slice(1));
+    return { token: params.get('access_token'), expires: Date.now() + (Number(params.get('expires_in')) - 60) * 1000 };
   });
+}
+
+// Reuse the saved token until it expires, then sign in again (silently if possible).
+async function getToken() {
+  const { auth } = await chrome.storage.local.get('auth');
+  if (auth && auth.expires > Date.now()) return auth.token;
+  let fresh;
+  try {
+    fresh = await signIn(false);
+  } catch {
+    fresh = await signIn(true);
+  }
+  await chrome.storage.local.set({ auth: fresh });
+  return fresh.token;
 }
 
 async function drive(url, token, options = {}) {

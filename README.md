@@ -14,9 +14,10 @@ Apps Script can't use the microphone (sidebars and dialogs are blocked), so the
 recorder is a Chrome extension in `extension/`. No server: audio goes straight
 from the browser to Google Drive, into the same folder as the open Doc.
 
-### Setup
-1. `chrome://extensions` -> Developer mode -> Load unpacked -> pick `extension/`. Copy the extension ID.
-2. Google Cloud Console: new project -> enable Google Drive API -> OAuth consent screen
-   (External, add yourself as a test user) -> Credentials -> OAuth client ID -> type Chrome extension,
-   paste the extension ID.
-3. Put the client ID in `extension/manifest.json` (`oauth2.client_id`), then reload the extension.
+### Setup (Chrome or Edge)
+1. Open `chrome://extensions` (or `edge://extensions`) -> Developer mode -> Load unpacked -> pick `extension/`. Copy the extension ID.
+2. The extension's redirect address is `https://<extension-id>.chromiumapp.org/`.
+3. Google Cloud Console: new project -> enable Google Drive API -> OAuth consent screen
+   (External, add yourself as a test user) -> Credentials -> OAuth client ID -> type **Web application**,
+   add the redirect address from step 2 under "Authorized redirect URIs".
+4. Put the client ID in `extension/background.js` (`CLIENT_ID`), then reload the extension.

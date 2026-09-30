@@ -3,7 +3,7 @@
   "name": "Google Docs Voice Notes",
   "version": "0.1.0",
   "description": "Record a voice note on a Google Doc and save it to the same Drive folder.",
-  "permissions": ["identity"],
+  "permissions": ["identity", "storage"],
   "host_permissions": ["https://docs.google.com/*", "https://www.googleapis.com/*"],
   "background": { "service_worker": "background.js" },
   "content_scripts": [
@@ -12,9 +12,5 @@
       "js": ["content.js"],
       "css": ["content.css"]
     }
-  ],
-  "oauth2": {
-    "client_id": "PASTE_YOUR_CLIENT_ID.apps.googleusercontent.com",
-    "scopes": ["https://www.googleapis.com/auth/drive"]
-  }
+  ]
 }
