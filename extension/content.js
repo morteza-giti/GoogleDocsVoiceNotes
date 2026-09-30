@@ -34,7 +34,7 @@
 
     // Reuse Docs' own button classes so everything looks native.
     const toggle = document.createElement('div');
-    toggle.className = 'goog-inline-block jfk-button jfk-button-standard vn-toggle';
+    toggle.className = 'vn-toggle';
     toggle.setAttribute('role', 'button');
     toggle.setAttribute('aria-label', 'Record a voice note');
     toggle.dataset.tooltip = 'Record a voice note';
