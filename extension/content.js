@@ -133,18 +133,43 @@
     };
   }
 
-  // Show a playable Drive player under any posted voice-note comment.
+  // Audio is fetched through the background script (it holds the Google sign-in)
+  // and played from a local blob, so it works without opening Drive.
+  const audioCache = new Map();
+  function getAudioUrl(fileId) {
+    if (!audioCache.has(fileId)) {
+      audioCache.set(fileId, chrome.runtime.sendMessage({ type: 'audio', fileId }).then(res => {
+        if (!res.ok) throw new Error(res.error);
+        const bytes = Uint8Array.from(atob(res.base64), c => c.charCodeAt(0));
+        return URL.createObjectURL(new Blob([bytes], { type: res.mimeType }));
+      }));
+    }
+    return audioCache.get(fileId);
+  }
+
+  // Put a real audio player inside any posted voice-note comment.
   function addInlinePlayer(body) {
-    if (body.dataset.vnDone || !body.textContent.includes('🎙')) return;
-    const link = body.querySelector('a[href*="drive.google.com/file/d/"]');
-    const id = link && (link.href.match(/\/file\/d\/([^/?]+)/) || [])[1];
+    if (body.querySelector('.vn-inline-wrap') || !body.textContent.includes('🎙')) return;
+    const hrefs = [...body.querySelectorAll('a')].map(a => a.href).join(' ');
+    const id = ((body.textContent + ' ' + hrefs).match(/drive\.google\.com\/file\/d\/([\w-]+)/) || [])[1];
     if (!id) return;
-    body.dataset.vnDone = '1';
-    const frame = document.createElement('iframe');
-    frame.className = 'vn-inline';
-    frame.src = 'https://drive.google.com/file/d/' + id + '/preview';
-    frame.allow = 'autoplay';
-    body.append(frame);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'vn-inline-wrap';
+    wrap.textContent = 'Loading audio...';
+    body.append(wrap);
+
+    getAudioUrl(id).then(url => {
+      const audio = document.createElement('audio');
+      audio.className = 'vn-inline';
+      audio.controls = true;
+      audio.src = url;
+      wrap.textContent = '';
+      wrap.append(audio);
+    }).catch(err => {
+      audioCache.delete(id);
+      wrap.textContent = 'Could not load audio: ' + err.message;
+    });
   }
 
   // Comment boxes appear and disappear as you use the Doc, so watch for new ones.

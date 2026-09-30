@@ -1,6 +1,8 @@
 /* Buttons reuse Docs' own jfk-button classes; this only adds spacing and the recorder panel. */
-.vn-toggle { margin-left: 8px; min-width: 0; padding: 0 10px; vertical-align: middle; }
-.vn-toggle svg { display: block; margin: 7px 0; }
+.vn-toggle { margin: 0 4px 0 0; min-width: 0; height: 36px; padding: 0 10px; border: none;
+  background: transparent; color: #1a73e8; vertical-align: middle; }
+.vn-toggle:hover { background: rgba(26, 115, 232, .08); }
+.vn-toggle svg { display: block; margin: 9px 0; }
 
 .vn-panel { display: none; margin-top: 12px; font-family: 'Google Sans', Roboto, Arial, sans-serif;
   font-size: 14px; color: #202124; }
@@ -15,4 +17,5 @@
 .vn-result { color: #5f6368; font-size: 12px; }
 
 /* Player shown inside a posted voice-note comment. */
-.vn-inline { display: block; width: 100%; height: 150px; margin-top: 8px; border: 0; border-radius: 8px; }
+.vn-inline-wrap { margin-top: 8px; color: #5f6368; font-size: 12px; }
+.vn-inline { display: block; width: 100%; height: 40px; }

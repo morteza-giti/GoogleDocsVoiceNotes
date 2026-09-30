@@ -78,9 +78,28 @@ async function saveVoiceNote({ docId, label, base64, mimeType }) {
   return { name: file.name, link: file.webViewLink };
 }
 
+async function fetchAudio(fileId) {
+  const token = await getToken();
+  const res = await fetch(`${DRIVE}/${fileId}?alt=media&supportsAllDrives=true`, {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+  if (!res.ok) throw new Error('Drive error ' + res.status);
+  const type = (res.headers.get('content-type') || '').split(';')[0];
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  }
+  const isMedia = type.startsWith('audio/') || type.startsWith('video/');
+  return { base64: btoa(binary), mimeType: isMedia ? type : 'audio/webm' };
+}
+
+const handlers = { save: saveVoiceNote, audio: msg => fetchAudio(msg.fileId) };
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg.type !== 'save') return;
-  saveVoiceNote(msg)
+  const handler = handlers[msg.type];
+  if (!handler) return;
+  handler(msg)
     .then(result => sendResponse({ ok: true, ...result }))
     .catch(err => sendResponse({ ok: false, error: err.message }));
   return true; // keep the channel open for the async reply
