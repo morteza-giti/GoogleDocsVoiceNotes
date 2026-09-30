@@ -1,0 +1,11 @@
+#vn-fab { position: fixed; right: 20px; bottom: 90px; z-index: 99999; width: 44px; height: 44px;
+  border-radius: 50%; border: none; background: #1a73e8; color: #fff; font-size: 20px; cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3); }
+#vn-panel { position: fixed; right: 20px; bottom: 145px; z-index: 99999; width: 280px; padding: 12px;
+  background: #fff; color: #202124; border-radius: 12px; font: 13px Arial, sans-serif;
+  box-shadow: 0 4px 16px rgba(0,0,0,.3); display: none; }
+#vn-panel.open { display: block; }
+#vn-panel button { padding: 6px 10px; margin: 4px 4px 4px 0; cursor: pointer; }
+#vn-panel input { width: 100%; box-sizing: border-box; padding: 5px; margin: 6px 0; }
+#vn-panel audio { width: 100%; margin-top: 6px; }
+#vn-status { margin: 6px 0; color: #555; word-break: break-word; }
