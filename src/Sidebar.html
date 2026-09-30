@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 12px; }
+    button { padding: 8px 12px; margin: 4px 4px 4px 0; }
+    #status { margin: 10px 0; color: #555; }
+    audio { width: 100%; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <button id="start">🎙 Start</button>
+  <button id="stop" disabled>Stop</button>
+  <div id="status">Ready</div>
+  <audio id="player" controls hidden></audio>
+
+  <script>
+    const startBtn = document.getElementById('start');
+    const stopBtn = document.getElementById('stop');
+    const statusEl = document.getElementById('status');
+    const player = document.getElementById('player');
+    let recorder, chunks = [], timer, seconds = 0;
+
+    const fmt = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+
+    startBtn.onclick = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        chunks = [];
+        recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.onstop = () => {
+          stream.getTracks().forEach(t => t.stop());
+          const blob = new Blob(chunks, { type: recorder.mimeType });
+          player.src = URL.createObjectURL(blob);
+          player.hidden = false;
+          statusEl.textContent = 'Recorded ' + fmt(seconds) + ' - press play to check';
+        };
+        recorder.start();
+        seconds = 0;
+        timer = setInterval(() => statusEl.textContent = 'Recording: ' + fmt(++seconds), 1000);
+        statusEl.textContent = 'Recording: 00:00';
+        player.hidden = true;
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+      } catch (err) {
+        statusEl.textContent = 'Microphone error: ' + err.name + ' - ' + err.message;
+      }
+    };
+
+    stopBtn.onclick = () => {
+      clearInterval(timer);
+      recorder.stop();
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    };
+  </script>
+</body>
+</html>
