@@ -2,3 +2,4 @@ node_modules/
 .clasp.json
 .clasprc.json
 *.log
+extension/markup for comment.txt
