@@ -5,7 +5,7 @@ const DRIVE = 'https://www.googleapis.com/drive/v3/files';
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
 
 // Google OAuth "Web application" client ID (see README). Works in Chrome and Edge.
-const CLIENT_ID = 'PASTE_YOUR_CLIENT_ID.apps.googleusercontent.com';
+const CLIENT_ID = '421620428538-ducjs7krpape0da7slk0ggiqc7ofuj5i.apps.googleusercontent.com';
 const SCOPE = 'https://www.googleapis.com/auth/drive';
 
 function signIn(interactive) {
