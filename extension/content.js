@@ -14,26 +14,42 @@
     r.readAsDataURL(b);
   });
 
+  // Google's own buttons are <div>s, so "disabled" is a CSS class, not a property.
+  const isOff = el => el.classList.contains('jfk-button-disabled');
+  const setOn = (el, on) => {
+    el.classList.toggle('jfk-button-disabled', !on);
+    el.setAttribute('aria-disabled', String(!on));
+  };
+
+  // Google's "mic" icon (Material Symbols).
+  const MIC_ICON =
+    '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">' +
+    '<path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z"/></svg>';
+
   function mount(buttonRow) {
     const box = buttonRow.closest('.docos-input');
     if (!box || box.querySelector('.vn-toggle')) return;
     const editor = box.querySelector('.docos-input-contenteditable');
     if (!editor) return;
 
+    // Reuse Docs' own button classes so everything looks native.
     const toggle = document.createElement('div');
-    toggle.className = 'vn-toggle';
+    toggle.className = 'goog-inline-block jfk-button jfk-button-standard vn-toggle';
     toggle.setAttribute('role', 'button');
-    toggle.title = 'Record a voice note';
-    toggle.textContent = '🎙';
+    toggle.setAttribute('aria-label', 'Record a voice note');
+    toggle.dataset.tooltip = 'Record a voice note';
+    toggle.innerHTML = MIC_ICON;
     buttonRow.append(toggle);
 
     const panel = document.createElement('div');
     panel.className = 'vn-panel';
     panel.innerHTML = `
-      <input class="vn-label" placeholder="Optional label (e.g. pronunciation)">
-      <button class="vn-start">Start</button>
-      <button class="vn-stop" disabled>Stop</button>
-      <button class="vn-save" disabled>Save &amp; add link</button>
+      <input class="vn-label" placeholder="Label (optional)">
+      <div class="vn-buttons">
+        <div role="button" class="goog-inline-block jfk-button jfk-button-standard vn-start">Start</div>
+        <div role="button" class="goog-inline-block jfk-button jfk-button-standard vn-stop jfk-button-disabled">Stop</div>
+        <div role="button" class="goog-inline-block jfk-button jfk-button-action vn-save jfk-button-disabled">Add to comment</div>
+      </div>
       <audio class="vn-player" controls hidden></audio>
       <div class="vn-status">Ready</div>
       <div class="vn-result"></div>`;
@@ -50,6 +66,7 @@
     let recorder, chunks = [], timer, seconds = 0, blob;
 
     $('vn-start').onclick = async () => {
+      if (isOff($('vn-start'))) return;
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         chunks = [];
@@ -60,7 +77,7 @@
           blob = new Blob(chunks, { type: recorder.mimeType });
           $('vn-player').src = URL.createObjectURL(blob);
           $('vn-player').hidden = false;
-          $('vn-save').disabled = false;
+          setOn($('vn-save'), true);
           statusEl.textContent = 'Recorded ' + fmt(seconds) + ' - check it, then save.';
         };
         recorder.start();
@@ -68,23 +85,25 @@
         timer = setInterval(() => (statusEl.textContent = 'Recording: ' + fmt(++seconds)), 1000);
         statusEl.textContent = 'Recording: 00:00';
         $('vn-player').hidden = true;
-        $('vn-save').disabled = true;
-        $('vn-start').disabled = true;
-        $('vn-stop').disabled = false;
+        setOn($('vn-save'), false);
+        setOn($('vn-start'), false);
+        setOn($('vn-stop'), true);
       } catch (err) {
         statusEl.textContent = 'Microphone error: ' + err.name + ' - ' + err.message;
       }
     };
 
     $('vn-stop').onclick = () => {
+      if (isOff($('vn-stop'))) return;
       clearInterval(timer);
       recorder.stop();
-      $('vn-start').disabled = false;
-      $('vn-stop').disabled = true;
+      setOn($('vn-start'), true);
+      setOn($('vn-stop'), false);
     };
 
     $('vn-save').onclick = async () => {
-      $('vn-save').disabled = true;
+      if (isOff($('vn-save'))) return;
+      setOn($('vn-save'), false);
       statusEl.textContent = 'Saving to Drive...';
       const label = $('vn-label').value.trim();
       const res = await chrome.runtime.sendMessage({
@@ -96,7 +115,7 @@
       });
       if (!res.ok) {
         statusEl.textContent = 'Save failed: ' + res.error;
-        $('vn-save').disabled = false;
+        setOn($('vn-save'), true);
         return;
       }
       statusEl.textContent = 'Saved as: ' + res.name;
@@ -114,11 +133,26 @@
     };
   }
 
+  // Show a playable Drive player under any posted voice-note comment.
+  function addInlinePlayer(body) {
+    if (body.dataset.vnDone || !body.textContent.includes('🎙')) return;
+    const link = body.querySelector('a[href*="drive.google.com/file/d/"]');
+    const id = link && (link.href.match(/\/file\/d\/([^/?]+)/) || [])[1];
+    if (!id) return;
+    body.dataset.vnDone = '1';
+    const frame = document.createElement('iframe');
+    frame.className = 'vn-inline';
+    frame.src = 'https://drive.google.com/file/d/' + id + '/preview';
+    frame.allow = 'autoplay';
+    body.append(frame);
+  }
+
   // Comment boxes appear and disappear as you use the Doc, so watch for new ones.
   let scheduled = false;
   const scan = () => {
     scheduled = false;
     document.querySelectorAll('.docos-input-buttons').forEach(mount);
+    document.querySelectorAll('.docos-replyview-body').forEach(addInlinePlayer);
   };
   new MutationObserver(() => {
     if (!scheduled) {
