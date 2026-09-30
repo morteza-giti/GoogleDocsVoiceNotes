@@ -1,13 +1,16 @@
-// Adds a "Voice Notes" menu to Google Docs and opens the recorder sidebar.
+// Adds a "Voice Notes" menu to Google Docs and opens the recorder in a pop-up.
+// A pop-up is used instead of a sidebar because sidebars block the microphone.
 
 function onOpen() {
   DocumentApp.getUi()
     .createMenu('Voice Notes')
-    .addItem('Record', 'showSidebar')
+    .addItem('Record', 'showRecorder')
     .addToUi();
 }
 
-function showSidebar() {
-  const html = HtmlService.createHtmlOutputFromFile('Sidebar').setTitle('Voice Note');
-  DocumentApp.getUi().showSidebar(html);
+function showRecorder() {
+  const html = HtmlService.createHtmlOutputFromFile('Recorder')
+    .setWidth(360)
+    .setHeight(260);
+  DocumentApp.getUi().showModelessDialog(html, 'Voice Note');
 }
