@@ -1,12 +1,14 @@
 // Talks to Google Drive on behalf of the content script.
 // Flow: find the Doc's folder -> pick the next number -> upload the audio there.
 
+importScripts('config.js');
+
 const DRIVE = 'https://www.googleapis.com/drive/v3/files';
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
 
 // Google OAuth "Web application" client ID (see README). Works in Chrome and Edge.
 const CLIENT_ID = '421620428538-ducjs7krpape0da7slk0ggiqc7ofuj5i.apps.googleusercontent.com';
-const SCOPE = 'https://www.googleapis.com/auth/drive';
+const SCOPE = VN_CONFIG.scope;
 
 function signIn(interactive) {
   const url =
@@ -110,9 +112,12 @@ async function trashVoiceNote(fileId) {
   return {};
 }
 
-const handlers = { save: saveVoiceNote, audio: msg => fetchAudio(msg.fileId),
-  trash: msg => trashVoiceNote(msg.fileId)
-};
+// The student edition can only play audio; saving and trashing are teacher-only.
+const handlers = { audio: msg => fetchAudio(msg.fileId) };
+if (VN_CONFIG.role === 'teacher') {
+  handlers.save = saveVoiceNote;
+  handlers.trash = msg => trashVoiceNote(msg.fileId);
+}
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   const handler = handlers[msg.type];

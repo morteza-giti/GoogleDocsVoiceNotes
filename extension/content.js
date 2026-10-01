@@ -3,6 +3,7 @@
 // audio to Drive (via background.js) and puts the link into THAT comment's text.
 
 (() => {
+  const isTeacher = VN_CONFIG.role === 'teacher';
   const docId = (location.pathname.match(/\/document\/d\/([^/]+)/) || [])[1];
   if (!docId) return;
 
@@ -219,7 +220,7 @@
   };
 
   let lastClick = null; // the comment the user last clicked inside
-  document.addEventListener('click', e => {
+  if (isTeacher) document.addEventListener('click', e => {
     const t = e.target;
     const thread = t.closest('.docos-anchoreddocoview, .docos-docoview-tesla-conflict');
     if (thread) {
@@ -259,7 +260,7 @@
   let scheduled = false;
   const scan = () => {
     scheduled = false;
-    document.querySelectorAll('.docos-input-buttons').forEach(mount);
+    if (isTeacher) document.querySelectorAll('.docos-input-buttons').forEach(mount);
     document.querySelectorAll('.docos-replyview-body').forEach(addInlinePlayer);
   };
   new MutationObserver(() => {

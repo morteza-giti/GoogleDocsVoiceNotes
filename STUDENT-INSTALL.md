@@ -9,7 +9,7 @@ work on phones.
 
 ## Install (about 3 minutes)
 
-1. Download the file `voice-notes-extension.zip` your teacher sent you.
+1. Download the file `voice-notes-student.zip` your teacher sent you.
 2. Right-click it and choose **Extract All** (Windows) or double-click it (Mac).
    Put the folder somewhere you will not delete, such as your Documents folder.
    **Do not delete or move this folder later**, or the extension will stop working.
@@ -32,8 +32,10 @@ The first time, a Google window asks you to sign in:
 2. If it says **"Google hasn't verified this app"**, this is normal. Click
    **Advanced**, then **Go to Voice Notes (unsafe)**, then **Allow**.
 
-The extension only plays audio files from your teacher's folder. It never
-changes or deletes anything of yours.
+Google will say the extension wants to **see and download your Google Drive
+files**. This is a read-only permission: the extension cannot change, create or
+delete anything. It only downloads the voice notes that are linked in the
+comments of the Doc you have open, so you can play them.
 
 ## If something does not work
 
