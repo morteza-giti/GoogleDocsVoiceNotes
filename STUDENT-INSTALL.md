@@ -19,7 +19,7 @@ work on phones.
 4. Turn on **Developer mode** (a switch on the page).
 5. Click **Load unpacked**, then choose the folder from step 2 (the one that
    contains a file called `manifest.json`).
-6. You should now see **Google Docs Voice Notes** in your list.
+6. You should now see **Google Docs Voice Notes (Student)** in your list.
 
 ## Use it
 
