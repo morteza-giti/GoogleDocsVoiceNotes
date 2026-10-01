@@ -88,6 +88,13 @@
     toggle.onclick = () => panel.classList.toggle('open');
 
     let recorder, chunks = [], timer, seconds = 0, blob;
+    const savedIds = [];
+
+    // Cancelling a draft comment discards the audio that was saved for it.
+    box.addEventListener('click', e => {
+      if (!e.target.closest('.docos-input-cancel')) return;
+      savedIds.splice(0).forEach(fileId => chrome.runtime.sendMessage({ type: 'trash', fileId }));
+    }, true);
 
     $('vn-start').onclick = async () => {
       if (isOff($('vn-start'))) return;
@@ -150,6 +157,7 @@
         setOn($('vn-save'), true);
         return;
       }
+      savedIds.push(res.id);
       statusEl.textContent = 'Saved as: ' + res.name;
       const text = '🎙 ' + (label || 'Voice note') + ': ' + res.link + ' ';
       let inserted = false;
@@ -202,6 +210,49 @@
       audioCache.delete(id);
       wrap.textContent = 'Could not load audio: ' + err.message;
     });
+  }
+
+  // When a voice-note comment is deleted in Docs, move its audio file to the Drive trash.
+  const voiceIdsIn = el => {
+    const text = el.textContent + ' ' + [...el.querySelectorAll('a')].map(a => a.href).join(' ');
+    return [...text.matchAll(/drive\.google\.com\/file\/d\/([\w-]+)/g)].map(m => m[1]);
+  };
+
+  let lastClick = null; // the comment the user last clicked inside
+  document.addEventListener('click', e => {
+    const t = e.target;
+    const thread = t.closest('.docos-anchoreddocoview, .docos-docoview-tesla-conflict');
+    if (thread) {
+      lastClick = { thread, reply: t.closest('.docos-replyview') };
+      return;
+    }
+    const item = t.closest('[role="menuitem"], .goog-menuitem');
+    if (item && lastClick && lastClick.reply && /^delete/i.test(item.textContent.trim())) {
+      handleDelete(lastClick);
+    }
+    lastClick = null;
+  }, true);
+
+  function handleDelete({ thread, reply }) {
+    // Deleting the first comment deletes the whole discussion; otherwise just that reply.
+    const replies = reply.classList.contains('docos-replyview-first')
+      ? [...thread.querySelectorAll('.docos-replyview')]
+      : [reply];
+    const ids = new Set();
+    replies.filter(r => r.textContent.includes('🎙')).forEach(r => voiceIdsIn(r).forEach(id => ids.add(id)));
+    if (!ids.size) return;
+
+    // Only act once the comment has really disappeared (the user may cancel a confirmation).
+    let tries = 0;
+    const timer = setInterval(() => {
+      if (++tries > 16) return clearInterval(timer);
+      if (!replies.every(r => !r.isConnected)) return;
+      clearInterval(timer);
+      const stillShown = [...document.querySelectorAll('.docos-replyview')].map(r => r.textContent + voiceIdsIn(r)).join(' ');
+      ids.forEach(fileId => {
+        if (!stillShown.includes(fileId)) chrome.runtime.sendMessage({ type: 'trash', fileId });
+      });
+    }, 500);
   }
 
   // Comment boxes appear and disappear as you use the Doc, so watch for new ones.

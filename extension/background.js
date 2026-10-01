@@ -75,7 +75,7 @@ async function saveVoiceNote({ docId, label, base64, mimeType }) {
     token,
     { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + boundary }, body }
   );
-  return { name: file.name, link: file.webViewLink };
+  return { id: file.id, name: file.name, link: file.webViewLink };
 }
 
 async function fetchAudio(fileId) {
@@ -94,7 +94,25 @@ async function fetchAudio(fileId) {
   return { base64: btoa(binary), mimeType: isMedia ? type : 'audio/webm' };
 }
 
-const handlers = { save: saveVoiceNote, audio: msg => fetchAudio(msg.fileId) };
+// Moves a voice-note file to the Drive trash (recoverable for 30 days).
+// Only files that match our own naming pattern are ever touched.
+const VOICE_NAME = / - voice \d{3}(?: - .*)?\.(mp3|webm|ogg)$/;
+
+async function trashVoiceNote(fileId) {
+  const token = await getToken();
+  const file = await drive(`${DRIVE}/${fileId}?fields=name&supportsAllDrives=true`, token);
+  if (!VOICE_NAME.test(file.name)) throw new Error('Not a voice note file, left alone.');
+  await drive(`${DRIVE}/${fileId}?supportsAllDrives=true`, token, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ trashed: true })
+  });
+  return {};
+}
+
+const handlers = { save: saveVoiceNote, audio: msg => fetchAudio(msg.fileId),
+  trash: msg => trashVoiceNote(msg.fileId)
+};
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   const handler = handlers[msg.type];
