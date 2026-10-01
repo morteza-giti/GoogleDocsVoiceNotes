@@ -15,8 +15,9 @@ recorder is a Chrome extension in `extension/`. No server: audio goes straight
 from the browser to Google Drive, into the same folder as the open Doc.
 
 ### Setup (Chrome or Edge)
-1. Open `chrome://extensions` (or `edge://extensions`) -> Developer mode -> Load unpacked -> pick `extension/`. Copy the extension ID.
-2. The extension's redirect address is `https://<extension-id>.chromiumapp.org/`.
+1. Open `chrome://extensions` (or `edge://extensions`) -> Developer mode -> Load unpacked -> pick `extension/`.
+2. The extension has a fixed ID (set by the `key` in `manifest.json`): `lbfgidfakfnckejmjgidjimgkblcbgkl`.
+   Its redirect address is `https://lbfgidfakfnckejmjgidjimgkblcbgkl.chromiumapp.org/`.
 3. Google Cloud Console: new project -> enable Google Drive API -> OAuth consent screen
    (External, add yourself as a test user) -> Credentials -> OAuth client ID -> type **Web application**,
    add the redirect address from step 2 under "Authorized redirect URIs".
