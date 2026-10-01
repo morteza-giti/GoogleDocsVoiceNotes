@@ -3,14 +3,30 @@
   "name": "Google Docs Voice Notes",
   "version": "0.1.0",
   "description": "Record a voice note on a Google Doc and save it to the same Drive folder.",
-  "permissions": ["identity", "storage"],
-  "host_permissions": ["https://docs.google.com/*", "https://www.googleapis.com/*"],
-  "background": { "service_worker": "background.js" },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyuFYxYhk0sUW6lt8OfUHkW/0Ag00VrgQbhYVVM7hBDKoWlOYO30IwsWXFhhs7Agcx6rb8TYlB/F14rF8r5Q+nGpYNiL8b3gcV2DJIPWyXZjRn6y8ZigVziF6DPyTvnip2tg3N5pIxenHj0oPpPHcsOzvbyawNHaJq4aZw9B700GnszCkayNPc/AFQ9lFE9AI1BkDAu1JmMC5ClAy+5+WASayPVPVFfIUwt5DxxcysJjVPuKmi2lt0hHPUwvY8aGplSXj9qqFC0cXu7pKdWBRpIZhM7O9+dKThEciGQk8lYrrep1o+F90jKQZufDhOrcKg1pjTetcw50e+8O53kDAlwIDAQAB",
+  "permissions": [
+    "identity",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://docs.google.com/*",
+    "https://www.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
-      "matches": ["https://docs.google.com/document/*"],
-      "js": ["lib/lame.min.js", "content.js"],
-      "css": ["content.css"]
+      "matches": [
+        "https://docs.google.com/document/*"
+      ],
+      "js": [
+        "lib/lame.min.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ]
     }
   ]
 }
