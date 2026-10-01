@@ -22,3 +22,8 @@ from the browser to Google Drive, into the same folder as the open Doc.
    (External, add yourself as a test user) -> Credentials -> OAuth client ID -> type **Web application**,
    add the redirect address from step 2 under "Authorized redirect URIs".
 4. Put the client ID in `extension/background.js` (`CLIENT_ID`), then reload the extension.
+
+## Student edition (read-only)
+`node scripts/build-student.js` builds `dist/voice-notes-student.zip`: the same extension without
+the recorder and with read-only Drive access (`drive.readonly`). Send that zip, plus
+`STUDENT-INSTALL.md`, to students. `dist/` is not committed.

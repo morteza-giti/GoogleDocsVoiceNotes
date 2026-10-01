@@ -21,6 +21,7 @@
         "https://docs.google.com/document/*"
       ],
       "js": [
+        "config.js",
         "lib/lame.min.js",
         "content.js"
       ],

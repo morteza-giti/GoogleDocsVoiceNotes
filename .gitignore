@@ -3,3 +3,4 @@ node_modules/
 .clasprc.json
 *.log
 extension/markup for comment.txt
+dist/
