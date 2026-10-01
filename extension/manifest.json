@@ -9,7 +9,7 @@
   "content_scripts": [
     {
       "matches": ["https://docs.google.com/document/*"],
-      "js": ["content.js"],
+      "js": ["lib/lame.min.js", "content.js"],
       "css": ["content.css"]
     }
   ]

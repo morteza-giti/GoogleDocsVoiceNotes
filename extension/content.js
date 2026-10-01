@@ -14,6 +14,30 @@
     r.readAsDataURL(b);
   });
 
+  // Turns the browser's recording (webm) into a mono 64 kbps MP3, all inside the browser.
+  async function toMp3(recording) {
+    const ctx = new AudioContext();
+    let audio;
+    try {
+      audio = await ctx.decodeAudioData(await recording.arrayBuffer());
+    } finally {
+      ctx.close();
+    }
+    const samples = audio.getChannelData(0);
+    const pcm = new Int16Array(samples.length);
+    for (let i = 0; i < samples.length; i++) {
+      pcm[i] = Math.max(-1, Math.min(1, samples[i])) * 0x7fff;
+    }
+    const encoder = new lamejs.Mp3Encoder(1, audio.sampleRate, 64);
+    const parts = [];
+    for (let i = 0; i < pcm.length; i += 1152) {
+      const chunk = encoder.encodeBuffer(pcm.subarray(i, i + 1152));
+      if (chunk.length) parts.push(chunk);
+    }
+    parts.push(encoder.flush());
+    return new Blob(parts, { type: 'audio/mpeg' });
+  }
+
   // Google's own buttons are <div>s, so "disabled" is a CSS class, not a property.
   const isOff = el => el.classList.contains('jfk-button-disabled');
   const setOn = (el, on) => {
@@ -72,13 +96,21 @@
         chunks = [];
         recorder = new MediaRecorder(stream);
         recorder.ondataavailable = e => chunks.push(e.data);
-        recorder.onstop = () => {
+        recorder.onstop = async () => {
           stream.getTracks().forEach(t => t.stop());
-          blob = new Blob(chunks, { type: recorder.mimeType });
+          const raw = new Blob(chunks, { type: recorder.mimeType });
+          statusEl.textContent = 'Converting to MP3...';
+          let note = '';
+          try {
+            blob = await toMp3(raw);
+          } catch (err) {
+            blob = raw;
+            note = ' (MP3 conversion failed, the original format will be saved)';
+          }
           $('vn-player').src = URL.createObjectURL(blob);
           $('vn-player').hidden = false;
           setOn($('vn-save'), true);
-          statusEl.textContent = 'Recorded ' + fmt(seconds) + ' - check it, then save.';
+          statusEl.textContent = 'Recorded ' + fmt(seconds) + ' - check it, then save.' + note;
         };
         recorder.start();
         seconds = 0;

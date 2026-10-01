@@ -59,7 +59,7 @@ async function saveVoiceNote({ docId, label, base64, mimeType }) {
     token
   );
   const number = String(existing.files.filter(f => f.name.startsWith(prefix)).length + 1).padStart(3, '0');
-  const ext = mimeType.includes('ogg') ? 'ogg' : 'webm';
+  const ext = mimeType.includes('mpeg') ? 'mp3' : mimeType.includes('ogg') ? 'ogg' : 'webm';
   const name = `${prefix}${number}${label ? ' - ' + clean(label) : ''}.${ext}`;
 
   const boundary = 'voicenote' + Date.now();
