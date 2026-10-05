@@ -33,5 +33,6 @@ fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 // bsdtar ships with Windows 10+ and macOS; "-a" picks the zip format from the name.
 // On Windows, name the system tar explicitly (Git Bash's tar cannot write zips).
 const tar = process.platform === 'win32' ? path.join(process.env.SystemRoot, 'System32', 'tar.exe') : 'tar';
-execFileSync(tar, ['-a', '-c', '-f', zip, '-C', out, '.']);
+// List the files by name: a bare "." makes entries start with "./", which some unzip tools show as empty.
+execFileSync(tar, ['-a', '-c', '-f', zip, '-C', out, ...fs.readdirSync(out)]);
 console.log('Built', zip);
